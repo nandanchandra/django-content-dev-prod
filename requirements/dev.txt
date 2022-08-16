@@ -1,0 +1,12 @@
+django
+django-environ
+djangorestframework
+django-cors-headers
+django-filter
+django-autoslug
+django-countries
+django-phonenumber-field
+drf-yasg
+pillow
+phonenumbers
+pytz

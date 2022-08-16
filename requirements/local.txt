@@ -1,0 +1,6 @@
+-r dev.txt
+
+psycopg2
+flake8
+black
+isort
