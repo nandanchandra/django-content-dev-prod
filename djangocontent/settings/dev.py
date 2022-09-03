@@ -29,6 +29,7 @@ THIRD_PARTY_APPS = [
     'phonenumber_field',
     'drf_yasg',
     'corsheaders',
+    "djcelery_email",
 ]
 
 LOCAL_APPS=[]
@@ -133,6 +134,13 @@ MEDIA_ROOT = str(ROOT_DIR / "mediafiles")
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_URLS_REGEX = r"^/api/.*$"
+
+CELERY_BROKER_URL = env("CELERY_BROKER")
+CELERY_RESULT_BACKEND = env("CELERY_BACKEND")
+CELERY_TIMEZONE = "Asia/Calcutta"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
 
 LOGGING = {
     "version": 1,

@@ -1,6 +1,9 @@
 -r dev.txt
 
-psycopg2
-flake8
+argh
 black
+flake8
 isort
+psycopg2
+PyYAML
+watchdog

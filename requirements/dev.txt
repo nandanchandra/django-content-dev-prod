@@ -1,4 +1,6 @@
+celery
 django
+django-celery-email
 django-environ
 djangorestframework
 django-cors-headers
@@ -7,6 +9,8 @@ django-autoslug
 django-countries
 django-phonenumber-field
 drf-yasg
+flower
 pillow
 phonenumbers
 pytz
+redis

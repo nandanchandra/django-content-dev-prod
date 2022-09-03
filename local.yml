@@ -18,6 +18,26 @@ services:
     depends_on:
       - postgres
       - mailhog
+      - redis
+    networks:
+      - django-content-dev
+
+  flower:
+    build:
+      context: .
+      dockerfile: ./docker/local/django/Dockerfile
+    command: /start-flower
+    container_name: flower
+    volumes:
+      - .:/app
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+      - postgres
     networks:
       - django-content-dev
 
@@ -39,6 +59,30 @@ services:
     container_name: mailhog
     ports:
       - "8025:8025"
+    networks:
+      - django-content-dev
+
+  redis:
+    image: redis:6-alpine
+    container_name: redis
+    networks:
+      - django-content-dev
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: ./docker/local/django/Dockerfile
+    command: /start-celeryworker
+    container_name: celery_worker
+    volumes:
+      - .:/app
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres
+    depends_on:
+      - redis
+      - postgres
+      - mailhog
     networks:
       - django-content-dev
 
