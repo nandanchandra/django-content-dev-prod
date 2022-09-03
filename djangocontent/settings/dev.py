@@ -5,7 +5,7 @@ env=environ.Env()
 
 ROOT_DIR=Path(__file__).resolve().parent.parent.parent
 
-APPS_DIR =ROOT_DIR/ "api"
+APPS_DIR =ROOT_DIR/"api"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DJANGO_DEBUG", False)
