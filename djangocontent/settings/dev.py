@@ -8,7 +8,9 @@ ROOT_DIR=Path(__file__).resolve().parent.parent.parent
 APPS_DIR =ROOT_DIR/"api"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool("DJANGO_DEBUG", False)
+DEBUG = env.bool("DJANGO_DEBUG", True)
+
+CSRF_TRUSTED_ORIGINS = ['http://.127.0.0.1']
 
 # Application definition
 
@@ -32,7 +34,10 @@ THIRD_PARTY_APPS = [
     "djcelery_email",
 ]
 
-LOCAL_APPS=[]
+LOCAL_APPS=[
+    'api.utils',
+    'api.account',
+]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -133,6 +138,8 @@ MEDIA_ROOT = str(ROOT_DIR / "mediafiles")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+AUTH_USER_MODEL = "account.User"
+
 CORS_URLS_REGEX = r"^/api/.*$"
 
 CELERY_BROKER_URL = env("CELERY_BROKER")
@@ -141,6 +148,15 @@ CELERY_TIMEZONE = "Asia/Calcutta"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
+
+
+REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "api.utils.exceptions.common_exception_handler",
+    "NON_FIELD_ERRORS_KEY": "error",
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+}
 
 LOGGING = {
     "version": 1,
