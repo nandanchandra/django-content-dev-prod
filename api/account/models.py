@@ -8,6 +8,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 
+
 class CustomUserManager(BaseUserManager):
     def email_validator(self, email):
         try:
@@ -38,7 +39,7 @@ class CustomUserManager(BaseUserManager):
             first_name=first_name,
             last_name=last_name,
             email=email,
-            **extra_fields
+            **extra_fields,
         )
 
         user.set_password(password)
@@ -76,6 +77,7 @@ class CustomUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+
 class User(AbstractBaseUser, PermissionsMixin):
     pkid = models.BigAutoField(primary_key=True, editable=False)
     id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -84,9 +86,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     first_name = models.CharField(verbose_name="first name", max_length=50)
     last_name = models.CharField(verbose_name="last name", max_length=50)
-    email = models.EmailField(
-        verbose_name="email address", db_index=True, unique=True
-    )
+    email = models.EmailField(verbose_name="email address", db_index=True, unique=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 

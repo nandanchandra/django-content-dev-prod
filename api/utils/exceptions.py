@@ -38,4 +38,3 @@ def _handle_not_found_error(exc, context, response):
     else:
         response = _handle_generic_error(exc, context, response)
     return response
-
