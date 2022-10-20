@@ -5,12 +5,17 @@ django-environ
 djangorestframework
 django-cors-headers
 django-filter
+djangorestframework-simplejwt==4.3.0
 django-autoslug
 django-countries
 django-phonenumber-field
+djoser
 drf-yasg
 flower
+importlib-metadata==1.4.0
 pillow
+psycopg2-binary
 phonenumbers
+PyJWT
 pytz
 redis

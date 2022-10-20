@@ -3,7 +3,11 @@
 argh
 black
 flake8
+Faker
 isort
 psycopg2
 PyYAML
+pytest-cov
+pytest-django
+pytest-factoryboy
 watchdog
