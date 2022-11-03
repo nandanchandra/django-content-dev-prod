@@ -11,7 +11,6 @@ services:
       - .:/app
       - static_volume:/app/staticfiles
       - media_volume:/app/mediafiles
-
     env_file:
       - ./.envs/.local/.django
       - ./.envs/.local/.postgres
