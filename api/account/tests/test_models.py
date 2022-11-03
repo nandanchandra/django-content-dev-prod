@@ -1,5 +1,7 @@
 import pytest
 
+from api.account.models import Profile
+
 def test_user_str(base_user):
     assert base_user.__str__() == f"{base_user.username}"
 
@@ -70,3 +72,12 @@ def test_create_superuser_with_no_password(user_factory):
     with pytest.raises(ValueError) as err:
         user_factory.create(password=None, is_superuser=True, is_staff=True)
     assert str(err.value) == "Superusers must have a password"
+
+
+def test_user_email_incorrect(user_factory):
+    with pytest.raises(ValueError) as err:
+        user_factory.create(email="test.com")
+    assert str(err.value) == "You must provide a valid email address"
+
+def test_profile_str(profile):
+    assert profile.__str__() == f"{profile.user.username}'s profile"
