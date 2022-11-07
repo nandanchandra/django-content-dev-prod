@@ -109,7 +109,10 @@ class ProfileSerializer(serializers.ModelSerializer):
         return f"{first_name} {last_name}"
 
     def get_profile_photo(self, obj):
-        return obj.profile_photo.url
+        try:
+            return obj.profile_photo.url
+        except Exception as e:
+            return None
 
     def get_following(self, instance):
         request = self.context.get("request", None)

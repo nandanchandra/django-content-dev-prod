@@ -34,14 +34,14 @@ class MyTokenObtainPairView(TokenObtainPairView):
     queryset = ''
 
 class ProfileListAPIView(generics.ListAPIView):
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     renderer_classes = (CustomeJSONRenderer,)
     pagination_class = ProfilePagination
 
 class ProfileDetailAPIView(generics.RetrieveAPIView):
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
     queryset = Profile.objects.select_related("user")
     serializer_class = ProfileSerializer
     renderer_classes = (CustomeJSONRenderer,)
@@ -72,13 +72,12 @@ class UpdateProfileAPIView(APIView):
         user_name = request.user.username
         if user_name != username:
             raise NotYourProfile
-
+        
         data = request.data
         serializer = UpdateProfileSerializer(instance=request.user.profile, data=data, partial=True)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
