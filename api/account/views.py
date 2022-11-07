@@ -6,11 +6,12 @@ from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import viewsets
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from djangocontent.settings.production import DEFAULT_FROM_EMAIL
 
 from .models import Profile
-from .serializers import FollowingSerializer, ProfileSerializer, UpdateProfileSerializer,UserSerializer,CreateUserSerializer
+from .serializers import FollowingSerializer, ProfileSerializer, UpdateProfileSerializer,UserSerializer,CreateUserSerializer,MyTokenObtainPairSerializer
 
 from api.utils.pagination import ProfilePagination
 from api.utils.renderers import CustomeJSONRenderer
@@ -26,6 +27,11 @@ class CreateUserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     renderer_classes = (CustomeJSONRenderer,)
     http_method_names = ["post",]
+
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
+    queryset = ''
 
 class ProfileListAPIView(generics.ListAPIView):
     # permission_classes = [permissions.IsAuthenticated]
