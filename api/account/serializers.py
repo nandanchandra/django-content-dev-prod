@@ -51,10 +51,10 @@ class UserSerializer(serializers.ModelSerializer):
         return representation
 
 
-class CreateUserSerializer(UserCreateSerializer):
-    class Meta(UserCreateSerializer.Meta):
+class CreateUserSerializer(serializers.ModelSerializer):
+    class Meta:
         model = User
-        fields = ["id", "username", "email", "first_name", "last_name", "password"]
+        fields = ["username", "email", "first_name", "last_name", "password"]
 
 
 class ProfileSerializer(serializers.ModelSerializer):

@@ -8,7 +8,7 @@ from django.db import models
 from django.utils import timezone
 
 from api.utils.models import TimeStampedUUIDModel
-from api.utils.preferences import Gender
+from api.utils.preferences import GENDER
 
 from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField
@@ -119,9 +119,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Profile(TimeStampedUUIDModel):
 
     user = models.OneToOneField(User,on_delete=models.CASCADE,related_name="profile")
-    phone_number = PhoneNumberField(max_length=20, default="+911111111111")
+    phone_number = PhoneNumberField(max_length=20, default="911111111111")
     about_me = models.TextField(default="Tell Something About Yourself",)
-    gender = models.IntegerField(choices=Gender.choices(),default=Gender.OTHER)
+    gender = models.CharField(max_length=10,choices=GENDER,default="OTHER")
     country = CountryField(default="IN", blank=False, null=False)
     city = models.CharField(max_length=180,default="Bengaluru",blank=False,null=False)
     profile_photo = models.ImageField(blank=True,null=True)

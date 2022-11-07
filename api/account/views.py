@@ -5,11 +5,12 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import viewsets
 
 from djangocontent.settings.production import DEFAULT_FROM_EMAIL
 
 from .models import Profile
-from .serializers import FollowingSerializer, ProfileSerializer, UpdateProfileSerializer
+from .serializers import FollowingSerializer, ProfileSerializer, UpdateProfileSerializer,UserSerializer,CreateUserSerializer
 
 from api.utils.pagination import ProfilePagination
 from api.utils.renderers import CustomeJSONRenderer
@@ -18,15 +19,23 @@ from api.utils.custom_exceptions import CantFollowYourself, NotYourProfile
 
 User = get_user_model()
 # Create your views here.
+
+
+class CreateUserViewSet(viewsets.ModelViewSet):
+    serializer_class = CreateUserSerializer
+    queryset = User.objects.all()
+    renderer_classes = (CustomeJSONRenderer,)
+    http_method_names = ["post",]
+
 class ProfileListAPIView(generics.ListAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     renderer_classes = (CustomeJSONRenderer,)
     pagination_class = ProfilePagination
 
 class ProfileDetailAPIView(generics.RetrieveAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
     queryset = Profile.objects.select_related("user")
     serializer_class = ProfileSerializer
     renderer_classes = (CustomeJSONRenderer,)
