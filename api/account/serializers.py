@@ -7,10 +7,22 @@ from .models import Profile
 User = get_user_model()
 
 class CreateUserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
         fields = ["username", "email", "first_name", "last_name", "password"]
+        extra_kwargs = {'password' : {'write_only': True},}
 
+    def create(self, validated_data):
+        member = User.objects.create(username=validated_data['username'],
+                email=validated_data['email'],
+                first_name = validated_data['first_name'],
+                last_name = validated_data['last_name']
+                )
+        member.set_password(validated_data['password'])
+        member.save()
+        return member
+        
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     default_error_messages = {
         "no_active_account": ["Bad Request","No active account found with the given credentials"]
