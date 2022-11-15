@@ -150,3 +150,14 @@ class Profile(TimeStampedUUIDModel):
 
     def check_is_followed_by(self, profile):
         return self.followed_by.filter(pkid=profile.pkid).exists()
+
+class UserActivities(models.Model):
+    user = models.ForeignKey(User,related_name='users_activities',null=True,on_delete=models.SET_NULL)
+    action=models.TextField()
+    created_at=models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('-created_at',)
+
+    def __str__(self):
+        return f"{self.user} {self.action} on {self.created_at.strftime('%Y-%m-%d %H:%M')}"
