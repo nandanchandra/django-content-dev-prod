@@ -173,7 +173,7 @@ class FollowingSerializer(serializers.ModelSerializer):
             "about_me",
             "twitter_handle",
             "facebook_handle",
-            "instagram_handle"
+            "instagram_handle",
             "following",
         ]
 
