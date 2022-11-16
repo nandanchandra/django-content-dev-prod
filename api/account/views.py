@@ -1,33 +1,72 @@
+import jwt
+import logging
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import viewsets
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from djangocontent.settings.production import DEFAULT_FROM_EMAIL
+from djangocontent.settings.local import DEFAULT_FROM_EMAIL,DOMAIN
 
 from .models import Profile
-from .serializers import FollowingSerializer, ProfileSerializer, UpdateProfileSerializer,UserSerializer,CreateUserSerializer,MyTokenObtainPairSerializer
+from .serializers import FollowingSerializer, ProfileSerializer, UpdateProfileSerializer,CreateUserSerializer,MyTokenObtainPairSerializer
 
+from api.utils.email_utils import Util
 from api.utils.pagination import ProfilePagination
 from api.utils.renderers import CustomeJSONRenderer
-from api.utils.custom_exceptions import CantFollowYourself, NotYourProfile
+from api.utils.custom_view_exceptions import CantFollowYourself, NotYourProfile
 
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 # Create your views here.
-
-
-class CreateUserViewSet(viewsets.ModelViewSet):
+class CreateUserAPIView(generics.GenericAPIView):
     serializer_class = CreateUserSerializer
-    queryset = User.objects.all()
     renderer_classes = (CustomeJSONRenderer,)
-    http_method_names = ["post",]
 
+    def post(self, request):
+        serializer=CreateUserSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            try:
+                user = User.objects.get(email=request.data['email'])
+                token = RefreshToken.for_user(user).access_token
+                absurl = f"{DOMAIN}/email/verify/?token={str(token)}"
+                email_body = 'Hello '+user.first_name +'<br><br>Thank you for signing up on DjangoContent. To get started, please ' + f"<button type=\"button\"><a href={absurl} style=\" text-decoration : none; color: black; \">Click here</a></button>" + ' to verify your email.<br> Alternatively, you can click the link below to verify:<br><br>'+f"{absurl}" + '<br><br> If you didn’t ask to verify this email, please let us know.' + '<br><br>Team,<br>DjangoContent<br>'+'______________________________________________________________________________________________<br>'+'This is an automatically generated email, please do not reply. If you need to contact us, please send us an email at<br>'+'chandranandan.chandrakar@gmail.com<br>'+'<br>Copyright © 2021 implicitdefcncdragneel<br>'+'<br>All rights reserved.'
+                data = {'email_body': email_body, 'to_email': user.email,
+                'email_subject': 'Please verify your email to join DjangoContent'}
+                Util.send_email(data)
+            except Exception as e:
+                logger.error(str(e))
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@csrf_exempt
+def verifyEmail(request):
+    if request.method == 'POST':
+        token = request.data.get('token')
+        try:
+            payload = jwt.decode(token,settings.SIGNING_KEY,algorithms="HS256")
+            user = User.objects.get(id=payload['user_id'])
+            user.is_email_verified = True
+            user.save()
+            return Response({'message': 'User Email Verified'}, status=status.HTTP_200_OK)
+        except jwt.ExpiredSignatureError as identifier:
+            logger.error(str(identifier))
+            return Response({'error': 'Activation Expired'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.exceptions.DecodeError as identifier:
+            logger.error(str(identifier))
+            return Response({'error': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            logger.error(str(e))
+            return Response({'error':'Technical Issuse'})
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
@@ -145,7 +184,7 @@ class FollowUnfollowAPIView(generics.GenericAPIView):
         message = f"Hi there {specific_user.username}!!, the user {current_user_profile.user.username} now follows you"
         from_email = DEFAULT_FROM_EMAIL
         recipient_list = [specific_user.email]
-        send_mail(subject, message, from_email, recipient_list, fail_silently=True)
+        Util.send_mail(subject, message, from_email, recipient_list, fail_silently=True)
         
         formatted_response = {
                 "status_code": status.HTTP_200_OK,

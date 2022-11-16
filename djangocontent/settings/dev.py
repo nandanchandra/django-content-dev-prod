@@ -12,6 +12,16 @@ APPS_DIR = ROOT_DIR / "api"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DJANGO_DEBUG", True)
 
+SECRET_KEY = env(
+    "DJANGO_SECRET_KEY",
+    default="django-bomhcbhc#rmqp9&4k$_0sse4rc(a$#8jrahz(h%m!ud_so66$x",
+)
+
+SIGNING_KEY = env(
+    "SIGNING_KEY",
+    default="django-bomhcbhc#rmqp9&4k$_0sse4rc(a$#8jrahz(h%m!ud_so66$x",
+)
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
@@ -41,7 +51,6 @@ THIRD_PARTY_APPS = [
     # "drf_yasg",
     "corsheaders",
     "djcelery_email",
-    # "djoser",
     "rest_framework_simplejwt",
 ]
 

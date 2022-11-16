@@ -9,7 +9,6 @@ djangorestframework-simplejwt
 django-autoslug
 django-countries
 django-phonenumber-field
-djoser
 drf-yasg
 flower
 importlib-metadata
