@@ -22,7 +22,13 @@ class CreateUserSerializer(serializers.ModelSerializer):
         member.set_password(validated_data['password'])
         member.save()
         return member
-        
+
+class ResetPasswordRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField(min_length=8,required=True)
+    class Meta:
+        model = User
+        fields = ['email',]
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     default_error_messages = {
         "no_active_account": ["Bad Request","No active account found with the given credentials"]

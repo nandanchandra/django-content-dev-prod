@@ -3,6 +3,8 @@ import logging
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
@@ -15,7 +17,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from djangocontent.settings.local import DEFAULT_FROM_EMAIL,DOMAIN
 
 from .models import Profile
-from .serializers import FollowingSerializer, ProfileSerializer, UpdateProfileSerializer,CreateUserSerializer,MyTokenObtainPairSerializer
+from .serializers import FollowingSerializer, ProfileSerializer, UpdateProfileSerializer,CreateUserSerializer,MyTokenObtainPairSerializer,ResetPasswordRequestSerializer
 
 from api.utils.email_utils import Util
 from api.utils.pagination import ProfilePagination
@@ -67,6 +69,24 @@ def verifyEmail(request):
         except Exception as e:
             logger.error(str(e))
             return Response({'error':'Technical Issuse'})
+
+class RequestPasswordResetEmail(generics.GenericAPIView):
+    serializer_class = ResetPasswordRequestSerializer
+
+    def post(self, request):    
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            try:
+                user=User.objects.get(email=request.data['email'])
+                uidb64=urlsafe_base64_encode(force_bytes(user.id))
+                absurl = f"{DOMAIN}/reset-password/new-password/?uidb={str(uidb64)}"
+                email_body = 'Hello '+user.first_name+',<br><br>Lost your password? No worries! Just '+ f"<button type=\"button\"><a href={absurl} style=\" text-decoration : none; color: black; \">Click here</a></button>" +' to set a new password and keep your account secure.<br> Alternatively, you can click the link below to reset:<br>'+f"{absurl}" +'<br><br>If you are still facing some trouble in logging into your account, or if you did not request to update/reset your password, please inform us immediately by sending an email to chandranandan.chandrakar@gmail.com or submitting a support request <a href="chandranandan16@gmail.com">here</a>.<br>'+'<br><br>Team,<br>DjangoContent<br>'+'______________________________________________________________________________________________<br>'+'This is an automatically generated email, please do not reply. If you need to contact us, please send us an email at<br>'+'chandranandan.chandrakar@gmail.com<br>'+'<br>Copyright © 2022 DjangoContent<br>'+'<br>All rights reserved.'
+                data = {'email_body': email_body, 'to_email': user.email,'email_subject': 'Reset your password for DjangoContent'}
+                Util.send_email(data)  
+                return Response({'message':'Link Send To Email'},status=status.HTTP_200_OK)
+            except Exception as e:
+                logger.error(str(e))
+                return Response({'error':'User Does Not Exits'},status=status.HTTP_400_BAD_REQUEST)
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer

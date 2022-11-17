@@ -10,11 +10,13 @@ from .views import (
     get_my_followers,
     MyTokenObtainPairView,
     CreateUserAPIView,
+    RequestPasswordResetEmail,
     verifyEmail
 )
 urlpatterns = [
     path("create/user/",CreateUserAPIView.as_view(),name="create-user"),
     path('email/verify/', verifyEmail, name="email-verify"), #Frontend should send the token to this endpoint
+    path('reset/password/', RequestPasswordResetEmail.as_view(),name="reset-password"),
     path('login/', MyTokenObtainPairView.as_view(), name='custom-token'),
     path('refresh/token/', TokenRefreshView.as_view(), name='token-refresh'),
     path("fetch/all/profile/", ProfileListAPIView.as_view(), name="all-profiles"),
