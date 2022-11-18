@@ -14,7 +14,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from djangocontent.settings.local import DEFAULT_FROM_EMAIL,DOMAIN
+from djangocontent.settings.local import DOMAIN
 
 from .models import Profile
 from .serializers import FollowingSerializer, ProfileSerializer, UpdateProfileSerializer,CreateUserSerializer,MyTokenObtainPairSerializer,ResetPasswordRequestSerializer,SetNewPasswordSerializer
@@ -202,13 +202,10 @@ class FollowUnfollowAPIView(generics.GenericAPIView):
             return Response(formatted_response, status=status.HTTP_400_BAD_REQUEST)
 
         current_user_profile.follow(userprofile_instance)
-
         subject = "A new user follows you"
         message = f"Hi there {specific_user.username}!!, the user {current_user_profile.user.username} now follows you"
-        from_email = DEFAULT_FROM_EMAIL
         recipient_list = [specific_user.email]
-        Util.send_mail(subject, message, from_email, recipient_list, fail_silently=True)
-        
+        Util.send_email(data={'email_subject':subject, 'email_body':message,"to_email":recipient_list})
         formatted_response = {
                 "status_code": status.HTTP_200_OK,
                 "detail": f"You now follow {specific_user.username}",

@@ -19,6 +19,6 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
-    path("",schema_view.with_ui(cache_timeout=0)),
+    path("redocument/",schema_view.with_ui(cache_timeout=0)),
     path("api/v1/account/", include("api.account.urls")),
 ]
