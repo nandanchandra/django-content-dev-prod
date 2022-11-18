@@ -1,10 +1,14 @@
+import logging
+from django.utils.encoding import smart_str
 from django.contrib.auth import get_user_model
+from django.utils.http import urlsafe_base64_decode
 from django_countries.serializer_fields import CountryField
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from .models import Profile
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 class CreateUserSerializer(serializers.ModelSerializer):
 
@@ -29,9 +33,34 @@ class ResetPasswordRequestSerializer(serializers.Serializer):
         model = User
         fields = ['email',]
 
+class SetNewPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(
+        min_length=6, max_length=18, write_only=True)
+    uidb64 = serializers.CharField(
+        min_length=1, write_only=True)
+    
+    class Meta:
+        fields = ['password', 'uidb64']
+
+    def validate(self, attrs):
+        password = attrs.get('password')
+        uidb64 = attrs.get('uidb64')
+        try:
+            id = smart_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(id=id)
+            user.set_password(password)
+            user.save()
+            return (user)
+        except User.DoesNotExist as e:
+            logger.error(str(e))
+            raise serializers.ValidationError(detail="User Does Not Exits")
+        except Exception as e :
+            logger.error(str(e))
+            raise e 
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     default_error_messages = {
-        "no_active_account": ["Bad Request","No active account found with the given credentials"]
+        "no_active_account": {"message":"Bad Request","errors":"No active account found with the given credentials"}
     }
     @classmethod
     def get_token(cls, user):
@@ -41,14 +70,10 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     
     def validate(self, attrs):
         data = super().validate(attrs)
-
         refresh = self.get_token(self.user)
         data['refresh'] = str(refresh)
         data['access'] = str(refresh.access_token)
-
         return data
-
-
 class UserSerializer(serializers.ModelSerializer):
     gender = serializers.CharField(source="profile.gender")
     phone_number = PhoneNumberField(source="profile.phone_number")
@@ -118,6 +143,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             "country",
             "city",
             "twitter_handle",
+            "facebook_handle",
+            "instagram_handle",
             "following",
         ]
 
@@ -147,6 +174,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class UpdateProfileSerializer(serializers.ModelSerializer):
     country = CountryField(name_only=True)
+    phone_number=PhoneNumberField(required=False)
 
     class Meta:
         model = Profile

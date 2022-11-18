@@ -17,7 +17,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from djangocontent.settings.local import DEFAULT_FROM_EMAIL,DOMAIN
 
 from .models import Profile
-from .serializers import FollowingSerializer, ProfileSerializer, UpdateProfileSerializer,CreateUserSerializer,MyTokenObtainPairSerializer,ResetPasswordRequestSerializer
+from .serializers import FollowingSerializer, ProfileSerializer, UpdateProfileSerializer,CreateUserSerializer,MyTokenObtainPairSerializer,ResetPasswordRequestSerializer,SetNewPasswordSerializer
 
 from api.utils.email_utils import Util
 from api.utils.pagination import ProfilePagination
@@ -59,16 +59,16 @@ def verifyEmail(request):
             user = User.objects.get(id=payload['user_id'])
             user.is_email_verified = True
             user.save()
-            return Response({'message': 'User Email Verified'}, status=status.HTTP_200_OK)
+            return Response({'status_code':200,'Details': 'User Email Verified'}, status=status.HTTP_200_OK)
         except jwt.ExpiredSignatureError as identifier:
             logger.error(str(identifier))
-            return Response({'error': 'Activation Expired'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'status_code':401,'error':'Activation Expired'}, status=status.HTTP_401_UNAUTHORIZED)
         except jwt.exceptions.DecodeError as identifier:
             logger.error(str(identifier))
-            return Response({'error': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'status_code':401,'error': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as e:
             logger.error(str(e))
-            return Response({'error':'Technical Issuse'})
+            return Response({'status_code':400,'error':'Technical Issuse'})
 
 class RequestPasswordResetEmail(generics.GenericAPIView):
     serializer_class = ResetPasswordRequestSerializer
@@ -79,14 +79,22 @@ class RequestPasswordResetEmail(generics.GenericAPIView):
             try:
                 user=User.objects.get(email=request.data['email'])
                 uidb64=urlsafe_base64_encode(force_bytes(user.id))
-                absurl = f"{DOMAIN}/reset-password/new-password/?uidb={str(uidb64)}"
+                absurl = f"{DOMAIN}/password/reset/complete/?uidb={str(uidb64)}"
                 email_body = 'Hello '+user.first_name+',<br><br>Lost your password? No worries! Just '+ f"<button type=\"button\"><a href={absurl} style=\" text-decoration : none; color: black; \">Click here</a></button>" +' to set a new password and keep your account secure.<br> Alternatively, you can click the link below to reset:<br>'+f"{absurl}" +'<br><br>If you are still facing some trouble in logging into your account, or if you did not request to update/reset your password, please inform us immediately by sending an email to chandranandan.chandrakar@gmail.com or submitting a support request <a href="chandranandan16@gmail.com">here</a>.<br>'+'<br><br>Team,<br>DjangoContent<br>'+'______________________________________________________________________________________________<br>'+'This is an automatically generated email, please do not reply. If you need to contact us, please send us an email at<br>'+'chandranandan.chandrakar@gmail.com<br>'+'<br>Copyright © 2022 DjangoContent<br>'+'<br>All rights reserved.'
                 data = {'email_body': email_body, 'to_email': user.email,'email_subject': 'Reset your password for DjangoContent'}
                 Util.send_email(data)  
-                return Response({'message':'Link Send To Email'},status=status.HTTP_200_OK)
+                return Response({'status_code':200,'Details':'Link Send To Email'},status=status.HTTP_200_OK)
             except Exception as e:
                 logger.error(str(e))
-                return Response({'error':'User Does Not Exits'},status=status.HTTP_400_BAD_REQUEST)
+                return Response({'status_code':400,'error':'User Does Not Exits'},status=status.HTTP_400_BAD_REQUEST)
+
+class SetNewPasswordAPIView(generics.GenericAPIView):
+    serializer_class = SetNewPasswordSerializer
+
+    def patch(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({'status_code':200,'Details':'Password reset success'}, status=status.HTTP_200_OK)
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
@@ -105,16 +113,13 @@ class ProfileDetailAPIView(generics.RetrieveAPIView):
     serializer_class = ProfileSerializer
     renderer_classes = (CustomeJSONRenderer,)
 
-    def retrieve(self, request, username, *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs):
         try:
-            profile = self.queryset.get(user__username=username)
+            profile = self.queryset.get(user__id=request.user.id)
         except Profile.DoesNotExist:
-            raise NotFound("A profile with this username does not exist")
-
+            raise NotFound("A profile with the credentails does not exist")
         serializer = self.serializer_class(profile, context={"request": request})
-
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 class UpdateProfileAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -122,40 +127,36 @@ class UpdateProfileAPIView(APIView):
     renderer_classes = [CustomeJSONRenderer]
     serializer_class = UpdateProfileSerializer
 
-    def patch(self, request, username):
+    def patch(self, request):
         try:
-            self.queryset.get(user__username=username)
+            self.queryset.get(user__id=request.user.id)
         except Profile.DoesNotExist:
-            raise NotFound("A profile with this username does not exist")
-
-        user_name = request.user.username
-        if user_name != username:
-            raise NotYourProfile
-        
+            raise NotFound("A profile does not exist")
         data = request.data
         serializer = UpdateProfileSerializer(instance=request.user.profile, data=data, partial=True)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
-def get_my_followers(request, username):
+def get_my_followers(request):
     try:
-        specific_user = User.objects.get(username=username)
+        specific_user = User.objects.get(id=request.user.id)
     except User.DoesNotExist:
         raise NotFound("User with that username does not exist")
 
     userprofile_instance = Profile.objects.get(user__pkid=specific_user.pkid)
-
     user_followers = userprofile_instance.followed_by.all()
     serializer = FollowingSerializer(user_followers, many=True)
-    
     formatted_response = {
         "status_code": status.HTTP_200_OK,
-        "followers": serializer.data,
-        "num_of_followers": len(serializer.data),
-    }
+        "Details":{
+            "followers": serializer.data,
+            "followers_count": len(serializer.data)
+            }
+        }
     return Response(formatted_response, status=status.HTTP_200_OK)
 
 
@@ -163,9 +164,9 @@ class FollowUnfollowAPIView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = FollowingSerializer
 
-    def get(self, request, username):
+    def get(self, request,username):
         try:
-            specific_user = User.objects.get(username=username)
+            specific_user = User.objects.get(id=request.user.id)
         except User.DoesNotExist:
             raise NotFound("User with that username does not exist")
 
@@ -174,9 +175,11 @@ class FollowUnfollowAPIView(generics.GenericAPIView):
         serializer = ProfileSerializer(my_following_list, many=True)
         formatted_response = {
             "status_code": status.HTTP_200_OK,
-            "users_i_follow": serializer.data,
-            "num_users_i_follow": len(serializer.data),
-        }
+            "Details":{
+                "following": serializer.data,
+                "following_count": len(serializer.data),
+                }
+            }
         return Response(formatted_response, status=status.HTTP_200_OK)
 
     def post(self, request, username):
@@ -187,7 +190,7 @@ class FollowUnfollowAPIView(generics.GenericAPIView):
 
         if specific_user.pkid == request.user.pkid:
             raise CantFollowYourself
-
+            
         userprofile_instance = Profile.objects.get(user__pkid=specific_user.pkid)
         current_user_profile = request.user.profile
 

@@ -19,7 +19,10 @@ def common_exception_handler(exc, context):
 
 def _handle_generic_error(exc, context, response):
     status_code = response.status_code
-    response.data = {"status_code": status_code, "errors": response.data}
+    response.data = {
+            "status_code": status_code, 
+            "errors": response.data
+        }
 
     return response
 
