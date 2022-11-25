@@ -208,7 +208,7 @@ class FollowUnfollowAPIView(generics.GenericAPIView):
         Util.send_email(data={'email_subject':subject, 'email_body':message,"to_email":recipient_list})
         formatted_response = {
                 "status_code": status.HTTP_200_OK,
-                "detail": f"You now follow {specific_user.username}",
+                "Details": f"You now follow {specific_user.username}",
             }
         return Response(formatted_response, status=status.HTTP_200_OK)
 
@@ -231,6 +231,6 @@ class FollowUnfollowAPIView(generics.GenericAPIView):
         current_user_profile.unfollow(userprofile_instance)
         formatted_response = {
             "status_code": status.HTTP_200_OK,
-            "detail": f"You have unfollowed {specific_user.username}",
+            "Details": f"You have unfollowed {specific_user.username}",
         }
         return Response(formatted_response, status=status.HTTP_200_OK)
