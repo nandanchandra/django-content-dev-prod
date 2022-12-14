@@ -6,10 +6,12 @@ djangorestframework
 django-cors-headers
 django-filter
 djangorestframework-simplejwt
+django-haystack
 django-autoslug
 django-countries
 django-phonenumber-field
 drf-yasg
+drf-haystack
 flower
 importlib-metadata
 pillow
@@ -17,4 +19,5 @@ psycopg2-binary
 phonenumbers
 PyJWT
 pytz
+Whoosh
 redis
