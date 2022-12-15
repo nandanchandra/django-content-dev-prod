@@ -18,6 +18,14 @@ class Rating(TimeStampedUUIDModel):
     def __str__(self):
         return f"{self.post.title} rated at {self.value}"
 
+class Comment(TimeStampedUUIDModel):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    body = models.TextField()
+
+    def __str__(self):
+        return f"{self.author} commented on {self.post}"
+
 class Favorite(TimeStampedUUIDModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favorites")
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="post_favorites")
