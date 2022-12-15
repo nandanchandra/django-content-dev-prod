@@ -86,9 +86,7 @@ class CustomUserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     pkid = models.BigAutoField(primary_key=True, editable=False)
     id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    username = models.CharField(
-        verbose_name="username", db_index=True, max_length=255, unique=True
-    )
+    username = models.CharField(verbose_name="username", db_index=True, max_length=255, unique=True)
     first_name = models.CharField(verbose_name="first name", max_length=50)
     last_name = models.CharField(verbose_name="last name", max_length=50)
     email = models.EmailField(verbose_name="email address", db_index=True, unique=True)

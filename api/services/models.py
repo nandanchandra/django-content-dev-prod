@@ -17,3 +17,23 @@ class Rating(TimeStampedUUIDModel):
 
     def __str__(self):
         return f"{self.post.title} rated at {self.value}"
+
+class Favorite(TimeStampedUUIDModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favorites")
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="post_favorites")
+
+    def __str__(self):
+        return f"{self.user.username} favorited {self.post.title}"
+
+    def is_favorited(self, user, post):
+        _result=False
+        try:
+            post = self.post
+            user = self.user
+        except Post.DoesNotExist:
+            pass
+        finally:
+            queryset = Favorite.objects.filter(post_id=post, user_id=user)
+        if queryset:
+            _result=True
+        return _result
