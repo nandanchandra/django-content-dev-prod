@@ -11,3 +11,8 @@ RATING = (
     ('4', 'GOOD'),
     ('5', 'BEST'),
 )
+
+REACTION = (
+    ('1', 'LIKE'),
+    ('-1', 'DISLIKE'),
+)
