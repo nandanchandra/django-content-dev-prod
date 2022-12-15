@@ -61,7 +61,7 @@ class Reaction(TimeStampedUUIDModel):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="post_reactions")
-    reaction = models.IntegerField(choices=REACTION)
+    reaction = models.IntegerField(choices=REACTION,help_text="1=LIKE,-1=DISLIKE")
 
     objects = ReactionManager()
 
