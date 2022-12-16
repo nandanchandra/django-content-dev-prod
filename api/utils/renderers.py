@@ -1,7 +1,5 @@
 import json
-
 from rest_framework.renderers import JSONRenderer
-
 
 class CustomeJSONRenderer(JSONRenderer):
     charset = "utf-8"
