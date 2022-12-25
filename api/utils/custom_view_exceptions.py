@@ -9,3 +9,7 @@ class NotYourProfile(APIException):
 class CantFollowYourself(APIException):
     status_code = 403
     default_detail = "You cannot follow yourself"
+
+class UpdatePost(APIException):
+    status_code = 403
+    default_detail = "You can't update an post that does not belong to you'"

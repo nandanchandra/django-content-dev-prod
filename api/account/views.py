@@ -20,7 +20,7 @@ from .models import Profile
 from .serializers import FollowingSerializer, ProfileSerializer, UpdateProfileSerializer,CreateUserSerializer,MyTokenObtainPairSerializer,ResetPasswordRequestSerializer,SetNewPasswordSerializer
 
 from api.utils.email_utils import Util
-from api.utils.pagination import ProfilePagination
+from api.utils.pagination import DefaultPagination
 from api.utils.renderers import CustomeJSONRenderer
 from api.utils.custom_view_exceptions import CantFollowYourself, NotYourProfile
 
@@ -105,7 +105,7 @@ class ProfileListAPIView(generics.ListAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     renderer_classes = (CustomeJSONRenderer,)
-    pagination_class = ProfilePagination
+    pagination_class = DefaultPagination
 
 class ProfileDetailAPIView(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated]
