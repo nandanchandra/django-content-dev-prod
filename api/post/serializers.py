@@ -11,3 +11,8 @@ class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         exclude = ["updated_at","pkid"]
+
+class PostSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Post
