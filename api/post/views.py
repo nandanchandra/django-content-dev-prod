@@ -38,7 +38,7 @@ class PostListAPIView(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = PostFilter
 
-@api_view(["PATCH"])
+@api_view(["PATCH","PUT"])
 @permission_classes([permissions.IsAuthenticated])
 def updatePostApiView(request,id):
     try:
@@ -55,4 +55,4 @@ def updatePostApiView(request,id):
         serializer.save()
         return Response(serializer.data)
     except:
-        return Response(serializer.error_messages)
+        return Response(serializer.errors)

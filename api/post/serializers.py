@@ -19,6 +19,9 @@ class PostSerializer(serializers.ModelSerializer):
 
 class PostUpdateSerializer(serializers.ModelSerializer):
     tags = TagRelatedField(many=True, required=False)
+    title=serializers.CharField(required=False)
+    description=serializers.CharField(required=False)
+    body=serializers.CharField(required=False)
 
     class Meta:
         model = Post
