@@ -2,10 +2,13 @@ import logging
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
+from rest_framework.exceptions import NotFound
 from rest_framework import generics, permissions, status, filters
+from rest_framework.decorators import api_view, permission_classes
 from api.post.filters import PostFilter
 from api.post.models import Post
-from api.post.serializers import PostCreateSerializer, PostSerializer
+from api.post.serializers import PostCreateSerializer, PostSerializer, PostUpdateSerializer
+from api.utils.custom_view_exceptions import UpdatePost
 from api.utils.pagination import DefaultPagination
 from api.utils.renderers import CustomeJSONRenderer
 
@@ -34,3 +37,22 @@ class PostListAPIView(generics.ListAPIView):
     pagination_class = DefaultPagination
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = PostFilter
+
+@api_view(["PATCH"])
+@permission_classes([permissions.IsAuthenticated])
+def updatePostApiView(request,id):
+    try:
+        post = Post.objects.get(pkid=id)
+    except Post.DoesNotExist:
+        raise NotFound("That post does not exist in our catalog")
+    user = request.user
+    if post.author != user:
+        raise UpdatePost
+    data = request.data
+    serializer = PostUpdateSerializer(post,data=data,many=False)
+    try:
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+    except:
+        return Response(serializer.error_messages)

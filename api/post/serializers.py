@@ -16,3 +16,10 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
+
+class PostUpdateSerializer(serializers.ModelSerializer):
+    tags = TagRelatedField(many=True, required=False)
+
+    class Meta:
+        model = Post
+        fields = ["title", "description", "body", "post_image", "tags"]
