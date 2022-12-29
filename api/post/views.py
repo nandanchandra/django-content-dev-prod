@@ -10,6 +10,7 @@ from api.post.models import Post
 from api.post.serializers import PostCreateSerializer, PostSerializer, PostUpdateSerializer
 from api.utils.custom_view_exceptions import UpdatePost
 from api.utils.pagination import DefaultPagination
+from api.utils.permission import IsOwnerOrReadOnly
 from api.utils.renderers import CustomeJSONRenderer
 
 User = get_user_model()
@@ -44,7 +45,7 @@ def updatePostApiView(request,id):
     try:
         post = Post.objects.get(pkid=id)
     except Post.DoesNotExist:
-        raise NotFound("That post does not exist in our catalog")
+        raise NotFound("That Post does not exist in our catalog")
     user = request.user
     if post.author != user:
         raise UpdatePost
@@ -56,3 +57,20 @@ def updatePostApiView(request,id):
         return Response(serializer.data)
     except:
         return Response(serializer.errors)
+
+class PostDeleteAPIView(generics.DestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
+    queryset = Post.objects.all()
+    lookup_field = "pkid"
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            post = Post.objects.get(pkid=self.kwargs.get("pkid"))
+            self.destroy(request)
+            return Response("Post was successful deleted")
+        except Post.DoesNotExist:
+            logger.info(f"Error Occured: {Post}")
+            raise NotFound("That Post does not exist in our catalog")
+        except Exception as e:
+            logger.info(f"Error Occured: {e}")
+            return Response("Error occur while deleting post")
