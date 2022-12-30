@@ -1,12 +1,13 @@
 import logging
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from rest_framework import generics, permissions, status, filters
 from rest_framework.decorators import api_view, permission_classes
 from api.post.filters import PostFilter
-from api.post.models import Post
+from api.post.models import Post, PostViews
 from api.post.serializers import PostCreateSerializer, PostSerializer, PostUpdateSerializer
 from api.utils.custom_view_exceptions import UpdatePost
 from api.utils.pagination import DefaultPagination
@@ -38,6 +39,24 @@ class PostListAPIView(generics.ListAPIView):
     pagination_class = DefaultPagination
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = PostFilter
+
+class PostDetailView(APIView):
+    renderer_classes = [CustomeJSONRenderer]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, id):
+        post = Post.objects.get(pkid=id)
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(",")[0]
+        else:
+            ip = request.META.get("REMOTE_ADDR")
+        if not PostViews.objects.filter(post=post, ip=ip).exists():
+            PostViews.objects.create(post=post, ip=ip)
+            post.views += 1
+            post.save()
+        serializer = PostSerializer(post, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["PATCH","PUT"])
 @permission_classes([permissions.IsAuthenticated])
