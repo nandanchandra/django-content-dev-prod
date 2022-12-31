@@ -5,7 +5,6 @@ from api.post.models import Post
 from api.services.models import Rating
 from api.utils.custom_view_exceptions import AlreadyRated, CantRateYourPost
 
-
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])
 def create_rating_view(request, id):
