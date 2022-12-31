@@ -22,4 +22,5 @@ urlpatterns = [
     path("redocument/",schema_view.with_ui(cache_timeout=0)),
     path("api/v1/account/", include("api.account.urls")),
     path("api/v1/post/", include("api.post.urls")),
+    path("api/v1/services/", include("api.services.urls")),
 ]

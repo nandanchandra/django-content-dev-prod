@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from api.utils.models import TimeStampedUUIDModel
+from api.post.readtime_util import PostReadTimeEngine
 
 User = get_user_model()
 class Tag(TimeStampedUUIDModel):
@@ -27,6 +28,11 @@ class Post(TimeStampedUUIDModel):
     def list_of_tags(self):
         tags = [tag.tag for tag in self.tags.all()]
         return tags
+
+    @property
+    def post_read_time(self):
+        _result = PostReadTimeEngine(self)
+        return _result.get_read_time()
 
 class PostViews(TimeStampedUUIDModel):
     ip = models.CharField(max_length=255)
