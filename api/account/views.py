@@ -22,7 +22,7 @@ from .serializers import FollowingSerializer, ProfileSerializer, UpdateProfileSe
 from api.utils.email_utils import Util
 from api.utils.pagination import DefaultPagination
 from api.utils.renderers import CustomeJSONRenderer
-from api.utils.custom_view_exceptions import CantFollowYourself, NotYourProfile
+from api.utils.custom_view_exceptions import CantFollowYourself
 
 
 User = get_user_model()
