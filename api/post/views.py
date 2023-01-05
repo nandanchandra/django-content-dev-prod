@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from rest_framework import generics, permissions, status, filters
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes,renderer_classes
 from api.post.filters import PostFilter
 from api.post.models import Post, PostViews
 from api.post.serializers import PostCreateSerializer, PostSerializer, PostUpdateSerializer
@@ -13,7 +13,6 @@ from api.utils.custom_view_exceptions import UpdatePost
 from api.utils.pagination import DefaultPagination
 from api.utils.permission import IsOwnerOrReadOnly
 from api.utils.renderers import CustomeJSONRenderer
-from api.utils.response_schema import response_schema
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -30,7 +29,7 @@ class PostCreateAPIView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         logger.info(f"post {serializer.data.get('title')} created")
-        return Response(response_schema("Post has been created!"), status=status.HTTP_201_CREATED)
+        return Response("Post has been created!", status=status.HTTP_201_CREATED)
 
 class PostListAPIView(generics.ListAPIView):
     serializer_class = PostSerializer
@@ -57,9 +56,10 @@ class PostDetailView(APIView):
             post.views += 1
             post.save()
         serializer = PostSerializer(post, context={"request": request})
-        return Response(response_schema(serializer.data), status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["PATCH","PUT"])
+@renderer_classes([CustomeJSONRenderer])
 @permission_classes([permissions.IsAuthenticated])
 def updatePostApiView(request,id):
     try:
@@ -74,11 +74,12 @@ def updatePostApiView(request,id):
     try:
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(response_schema("Post Updated Successfully!"), status=status.HTTP_204_NO_CONTENT)
+        return Response("Post Updated Successfully!", status=status.HTTP_204_NO_CONTENT)
     except:
-        return Response(response_schema("Error Occured!",serializer.errors))
+        return Response(serializer.errors)
 
 class PostDeleteAPIView(generics.DestroyAPIView):
+    renderer_classes = [CustomeJSONRenderer]
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
     queryset = Post.objects.all()
     lookup_field = "pkid"
@@ -87,10 +88,10 @@ class PostDeleteAPIView(generics.DestroyAPIView):
         try:
             post = Post.objects.get(pkid=self.kwargs.get("pkid"))
             self.destroy(request)
-            return Response(response_schema("Post was successful deleted!"), status=status.HTTP_204_NO_CONTENT)
+            return Response("Post was successful deleted!", status=status.HTTP_204_NO_CONTENT)
         except Post.DoesNotExist:
             logger.info(f"Error Occured: {Post}")
-            return Response(response_schema("Not Found","That Post does not exist in our catalog"), status=status.HTTP_404_NOT_FOUND)
+            return Response("That Post does not exist in our catalog", status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             logger.info(f"Error Occured: {e}")
-            return Response(response_schema("Error Occured!","Error occur while deleting post"))
+            return Response("Error occur while deleting post")
