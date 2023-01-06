@@ -1,4 +1,5 @@
 import environ
+import pyroscope
 from pathlib import Path
 from datetime import timedelta
 
@@ -208,3 +209,9 @@ LOGGING = {
     },
     "root": {"level": "INFO", "handlers": ["console"]},
 }
+
+
+pyroscope.configure(
+	application_name = "djangocontent",
+	server_address   = "http://pyroscope:4040",
+)

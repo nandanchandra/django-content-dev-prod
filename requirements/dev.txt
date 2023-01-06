@@ -17,6 +17,7 @@ importlib-metadata
 pillow
 psycopg2-binary
 phonenumbers
+pyroscope-io
 PyJWT
 pytz
 Whoosh
