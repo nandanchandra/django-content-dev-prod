@@ -1,9 +1,11 @@
 from rest_framework.response import Response
-from rest_framework import permissions, status
+from rest_framework.exceptions import NotFound
+from rest_framework import permissions, status,generics
 from rest_framework.decorators import api_view, permission_classes,renderer_classes
 
 from api.post.models import Post
-from api.services.models import Rating
+from api.services.models import Comment, Rating
+from api.services.serializers import CommentSerializer
 from api.utils.renderers import CustomeJSONRenderer
 from api.utils.custom_view_exceptions import AlreadyRated, CantRateYourPost
 
@@ -12,7 +14,7 @@ from api.utils.custom_view_exceptions import AlreadyRated, CantRateYourPost
 @permission_classes([permissions.IsAuthenticated])
 def create_rating_view(request, id):
     author = request.user
-    post = Post.objects.get(id=id)
+    post = Post.objects.get(pkid=id)
     data = request.data
     if post.author == author:
         raise CantRateYourPost
@@ -25,3 +27,34 @@ def create_rating_view(request, id):
         rating = Rating.objects.create(post=post,rated_by=request.user,value=data["value"],review=data["review"])
         rating.save()
         return Response("Rating has been added", status=status.HTTP_201_CREATED)
+
+class CommentAPIView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = CommentSerializer
+    renderer_classes = [CustomeJSONRenderer]
+
+    def get(self, request, **kwargs):
+        try:
+            post = Post.objects.get(pkid=id)
+        except Post.DoesNotExist:
+            raise NotFound("That post does not exist in our catalog")
+        try:
+            comments = Comment.objects.filter(post_id=post.pkid)
+        except Comment.DoesNotExist:
+            raise NotFound("No comments found")
+        serializer = CommentSerializer(comments, many=True, context={"request": request})
+        return Response({"num_comments": len(serializer.data), "comments": serializer.data})
+
+    def post(self, request, **kwargs):
+        try:
+            post = Post.objects.get(pkid=id)
+        except Post.DoesNotExist:
+            raise NotFound("That post does not exist in our catalog")
+        comment = request.data
+        author = request.user
+        comment["author"] = author.pkid
+        comment["post"] = post.pkid
+        serializer = self.serializer_class(data=comment)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
