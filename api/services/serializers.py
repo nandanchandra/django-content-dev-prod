@@ -15,9 +15,8 @@ class RatingSerializer(serializers.ModelSerializer):
     def get_post(self, obj):
         return obj.post.title
 
-class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.ReadOnlyField(source="author.user.username",required=False)
-    post = serializers.ReadOnlyField(source="post.title",required=False)
+class PostCommentSerializer(serializers.ModelSerializer):
+    
     created_at = serializers.SerializerMethodField()
     updated_at = serializers.SerializerMethodField()
 
