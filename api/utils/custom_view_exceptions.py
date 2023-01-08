@@ -19,3 +19,7 @@ class CantRateYourPost(APIException):
 class AlreadyRated(APIException):
     status_code = 400
     default_detail = "You have already rated this Post!"
+
+class AlreadyFavorited(APIException):
+    status_code = 400
+    default_detail = "You have already favorited this Post"

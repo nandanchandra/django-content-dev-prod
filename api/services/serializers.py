@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.services.models import Rating,Comment
+from api.services.models import Rating,Comment,Favorite
 
 class RatingSerializer(serializers.ModelSerializer):
     rated_by = serializers.SerializerMethodField(read_only=True)
@@ -33,3 +33,8 @@ class PostCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ["id", "author", "post", "body", "created_at", "updated_at"]
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Favorite
+        fields = ["id", "user", "post"]

@@ -4,10 +4,10 @@ from rest_framework import permissions, status,generics
 from rest_framework.decorators import api_view, permission_classes,renderer_classes
 
 from api.post.models import Post
-from api.services.models import Comment, Rating
-from api.services.serializers import PostCommentSerializer
+from api.services.models import Comment,Rating,Favorite
+from api.services.serializers import PostCommentSerializer,FavoriteSerializer
 from api.utils.renderers import CustomeJSONRenderer
-from api.utils.custom_view_exceptions import AlreadyRated, CantRateYourPost
+from api.utils.custom_view_exceptions import AlreadyFavorited, AlreadyRated, CantRateYourPost
 
 @api_view(["POST"])
 @renderer_classes([CustomeJSONRenderer])
@@ -80,3 +80,27 @@ class PostCommentAPIView(generics.GenericAPIView):
             return Response("Comment deleted successfully!", status=status.HTTP_200_OK)
         except Comment.DoesNotExist:
             raise NotFound("Comment does not exist")
+
+class FavoriteAPIView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = FavoriteSerializer
+    renderer_classes = [CustomeJSONRenderer]
+
+    def post(self, request):
+        data = request.data
+        post = Post.objects.get(pkid=id)
+        user = request.user
+
+        favorite = Favorite.objects.filter(user=user, post=post.pkid).first()
+
+        if favorite:
+            raise AlreadyFavorited
+        else:
+            data["post"] = post.pkid
+            data["user"] = user.pkid
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            data = serializer.data
+            data["message"] = "Post added to favorites."
+            return Response(data, status=status.HTTP_201_CREATED)
