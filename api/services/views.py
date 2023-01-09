@@ -4,6 +4,7 @@ from rest_framework import permissions, status,generics
 from rest_framework.decorators import api_view, permission_classes,renderer_classes
 
 from api.post.models import Post
+from api.post.serializers import PostSerializer
 from api.services.models import Comment,Rating,Favorite
 from api.services.serializers import PostCommentSerializer,FavoriteSerializer
 from api.utils.renderers import CustomeJSONRenderer
@@ -85,6 +86,16 @@ class FavoriteAPIView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = FavoriteSerializer
     renderer_classes = [CustomeJSONRenderer]
+
+    def get(self, request):
+        Favorites = Favorite.objects.filter(user_id=request.user.id)
+        favorite_posts = []
+        for favorite in Favorites:
+            post = Post.objects.get(pkid=favorite.post.pkid)
+            post = PostSerializer(post, context={"post": post.pkid, "request": request}).data
+            favorite_posts.append(post)
+        favorites = {"my_favorites": favorite_posts}
+        return Response(data=favorites, status=status.HTTP_200_OK)
 
     def post(self, request):
         data = request.data
