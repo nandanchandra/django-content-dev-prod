@@ -1,3 +1,4 @@
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from rest_framework import permissions, status,generics
@@ -5,8 +6,8 @@ from rest_framework.decorators import api_view, permission_classes,renderer_clas
 
 from api.post.models import Post
 from api.post.serializers import PostSerializer
-from api.services.models import Comment,Rating,Favorite
-from api.services.serializers import PostCommentSerializer,FavoriteSerializer
+from api.services.models import Comment,Rating,Favorite,Reaction
+from api.services.serializers import PostCommentSerializer,FavoriteSerializer,ReactionSerializer
 from api.utils.renderers import CustomeJSONRenderer
 from api.utils.custom_view_exceptions import AlreadyFavorited, AlreadyRated, CantRateYourPost
 
@@ -97,7 +98,7 @@ class FavoriteAPIView(generics.GenericAPIView):
         favorites = {"my_favorites": favorite_posts}
         return Response(data=favorites, status=status.HTTP_200_OK)
 
-    def post(self, request):
+    def post(self, request,id):
         data = request.data
         post = Post.objects.get(pkid=id)
         user = request.user
@@ -115,3 +116,32 @@ class FavoriteAPIView(generics.GenericAPIView):
             data = serializer.data
             data["message"] = "Post added to favorites."
             return Response(data, status=status.HTTP_201_CREATED)
+
+class ReactionAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = ReactionSerializer
+    renderer_classes = [CustomeJSONRenderer]
+
+    def get(self, request, id):
+        try:
+            post = Post.objects.get(pkid=id)
+            reaction = Reaction.objects.get(post=post, user=request.user)
+            reaction.delete()
+        except Reaction.DoesNotExist:
+            pass
+        data = {"post": post.pkid, "user": request.user, "reaction": reaction}
+        serializer = self.serializer_class(data=data)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, id):
+        post = Post.objects.get(pkid=id)
+        user = request.user
+        reaction = request.data.get("reaction")
+        try:
+            _reaction = Reaction.objects.get(post=post, user=user, reaction=reaction)
+            _reaction.delete()
+            response = f"You no-longer {'LIKE' if reaction in [1,'1'] else 'DISLIKE'}"
+        except Reaction.DoesNotExist:
+            response = self.get(id)
+        return Response(response)

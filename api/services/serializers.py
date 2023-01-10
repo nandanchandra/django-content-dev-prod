@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.services.models import Rating,Comment,Favorite
+from api.services.models import Rating,Comment,Favorite,Reaction
 
 class RatingSerializer(serializers.ModelSerializer):
     rated_by = serializers.SerializerMethodField(read_only=True)
@@ -38,3 +38,9 @@ class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favorite
         fields = ["id", "user", "post"]
+
+class ReactionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Reaction
+        exclude = ["pkid", "updated_at"]
