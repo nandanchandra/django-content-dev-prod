@@ -52,6 +52,18 @@ services:
       - ./.envs/.local/.postgres
     networks:
       - django-content-dev
+  
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    env_file:
+      - ./.envs/.local/.pgadmin
+    ports:
+      - 5050:80
+    depends_on:
+      - postgres
+    networks:
+      - django-content-dev
 
   mailhog:
     image: mailhog/mailhog:v1.0.0
