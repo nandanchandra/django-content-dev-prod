@@ -79,6 +79,14 @@ services:
     networks:
       - django-content-dev
 
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    container_name: redisinsight
+    ports:
+      - "8001:8001"
+    networks:
+      - django-content-dev
+  
   celery_worker:
     build:
       context: .
